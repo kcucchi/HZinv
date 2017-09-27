@@ -6,10 +6,12 @@
 #' @return the equivelent thermal conductivity
 #' @export
 calculate_lambda_m <- function(param){
-
-  return ( ( param$n * sqrt(param$lambda_w) +
-               (1 - param$n) * sqrt(param$lambda_s))^2)
-
+  
+  res <- param['n'] * sqrt(param['lambda_w']) +
+    (1 - param['n']) * sqrt(param['lambda_s'])^2
+  
+  return ( c(lambda_m = as.numeric(res)))
+  
 }
 
 #' Calculate equivalent reduced parameters from vector of parameters
@@ -18,21 +20,21 @@ calculate_lambda_m <- function(param){
 #' @return the equivalent reduced parameters
 #' @export
 calculate_eq <- function(param){
-
+  
   lambda_m <- calculate_lambda_m(param)
-
+  
   rho_m_c_m <-
-    param$n * param$rho_w * param$c_w +
-    (1 - param$n) * param$rho_s * param$c_s
-
-  kappa_e <- lambda_m / (rho_m_c_m)
-
-  alpha_e <- rho_w * c_w / rho_m_c_m *
-    param$permeability * param$rho_w * param$g / param$mu_w
-
-  return(list(kappa_e = kappa_e,
-              alpha_e = alpha_e))
-
+    as.numeric(param['n'] * param['rho_w'] * param['c_w'] +
+                 (1 - param['n']) * param['rho_s'] * param['c_s'])
+  
+  kappa_e <- as.numeric(lambda_m / (rho_m_c_m))
+  
+  alpha_e <- as.numeric(param['rho_w'] * param['c_w'] / rho_m_c_m *
+    param['permeability'] * param['rho_w'] * param['g'] / param['mu_w'])
+  
+  return(c(kappa_e = kappa_e,
+           alpha_e = alpha_e))
+  
 }
 
 
@@ -42,8 +44,9 @@ calculate_eq <- function(param){
 #' @return the Peclet number
 #' @export
 calculatePeclet <- function(param){
+  
   param_eq <- calculate_eq(param)
-
+  
   return( calculatePeclet_eq(param_eq = param_eq,param = param) )
 }
 
@@ -54,5 +57,6 @@ calculatePeclet <- function(param){
 #' @return the Peclet number
 #' @export
 calculatePeclet_eq <- function(param_eq,param){
-  return( abs ( param_eq$alpha_e / param_eq$kappa_e * param$dH) )
+  res <- abs ( param_eq['alpha_e'] / param_eq['kappa_e'] * param['dH'])
+  return( as.numeric(res) )
 }
