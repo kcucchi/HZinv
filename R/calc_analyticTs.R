@@ -8,7 +8,7 @@
 #' Depths need to be between 0 and maximum depth.
 #' @return temperature at depth z and time t for parameters param
 #' @export
-calculateSynthetic_timeDepth <- function(param,t,z){
+calc_analyticTs_timeDepth <- function(param,t,z){
 
   # following notations in Luce 2013
 
@@ -55,7 +55,7 @@ calculateSynthetic_timeDepth <- function(param,t,z){
 #' @param Deltat (in s) time resolution of output time series
 #' @return temperature time series at depth z
 #' @export
-calculateSyntheticTs <- function(param,z,nbDays=3){
+calc_analyticTs <- function(param,z,nbDays=3){
 
   # generate vector of time values
   # starts on 01/01/2010
@@ -75,7 +75,7 @@ calculateSyntheticTs <- function(param,z,nbDays=3){
 
   # call calculateSynthetic_timeDepth to calculate result
   res <-
-    calculateSynthetic_timeDepth(param = param,
+    calc_analyticTs_timeDepth(param = param,
                                  t = df_t$t_seconds,
                                  z = z)
 
