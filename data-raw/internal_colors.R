@@ -6,8 +6,8 @@
 
 # choose palette from RColorBrewer
 
-colsSet <- RColorBrewer::brewer.pal(8, "Set2")
-col_z <- c(z_0 = colsSet[1],
+colsSet <- terrain.colors(7)
+col_z <- c(z_top = colsSet[1],
            z_1 = colsSet[2],
            z_2 = colsSet[3],
            z_3 = colsSet[4],
