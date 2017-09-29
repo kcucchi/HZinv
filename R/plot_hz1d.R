@@ -16,7 +16,9 @@ plot_hz1d_t <- function(param,df_hz1d_t){
   vect_labels <- as.character(df_z_idx$z)
   names(vect_labels) <- as.character.factor(df_z_idx$z_idx)
 
-  ggplot(data = df_hz1d_t,
+  # final plot
+  g_res <-
+    ggplot(data = df_hz1d_t,
          mapping = aes(x=t_time,y=temperature,color=z_idx)) +
     geom_line() +
     scale_color_manual(
@@ -24,5 +26,7 @@ plot_hz1d_t <- function(param,df_hz1d_t){
       labels = vect_labels) +
     labs(x="",y="T (in C)", color="depth\n(in m)") +
     theme_bw()
+
+  return(g_res)
 
 }
