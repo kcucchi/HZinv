@@ -9,9 +9,9 @@ calculateSynthetic_timeDepth(param, t, z)
 \arguments{
 \item{param}{the vector of parameters}
 
-\item{t}{time at which to calculate the temperature}
+\item{t}{(in s) time at which to calculate the temperature}
 
-\item{z}{a vector of depths at which to calculate the temperature.
+\item{z}{(in m) a vector of depths at which to calculate the temperature
 Depths need to be between 0 and maximum depth.}
 }
 \value{

@@ -4,16 +4,16 @@
 \alias{calculateSyntheticTs}
 \title{Applies the analytical formula to calculate temperature time series at one depth}
 \usage{
-calculateSyntheticTs(param, z, nbDays = 3, Deltat = 15 * 60)
+calculateSyntheticTs(param, z, nbDays = 3)
 }
 \arguments{
 \item{param}{the vector of parameters}
 
-\item{z}{depth at which to calculate the temperature}
+\item{z}{(in m) a vector of depths at which to calculate the temperature}
 
-\item{nbDays}{length of output time series, in days}
+\item{nbDays}{(in days) length of output time series}
 
-\item{Deltat}{time resolution of output time series}
+\item{Deltat}{(in s) time resolution of output time series}
 }
 \value{
 temperature time series at depth z
