@@ -14,22 +14,22 @@ calc_analyticTs_timeDepth <- function(param,t,z){
 
   # define parameters
   rho_mTimesc_m <-
-    as.numeric(param['n'] * param['rho_w'] * param['c_w'] +
-                 (1-param['n']) * param['rho_s'] * param['c_s'])
-  lambda_m = HZinv::calculate_lambda_m(param = param)
-  param_eq <- HZinv::calculate_eq(param = param)
+    param[['n']] * param[['rho_w']] * param[['c_w']] +
+    (1-param[['n']]) * param[['rho_s']] * param[['c_s']]
+  lambda_m = HZinv::calc_lambda_m(param = param)
+  param_eq <- HZinv::calc_eq(param = param)
 
   # Darcy with positive flux downwards
-  q <- param['permeability'] * param['rho_w'] * param['g'] / param['mu_w'] *
-    param['dH'] / param['z_bottom']
+  q <- param[['permeability']] * param[['rho_w']] * param[['g']] / param[['mu_w']] *
+    param[['dH']] / param[['z_bottom']]
 
   # areally averaged rate of heat movement
-  v_t <-  as.numeric(q * param['rho_w'] * param['c_w'] / rho_mTimesc_m)
-  omega <- 2 * pi / param['period_T']
-  alpha <- as.numeric(sqrt ( v_t^4 + (4 * omega * param_eq['kappa_e'])^2 ))
+  v_t <-  q * param[['rho_w']] * param[['c_w']] / rho_mTimesc_m
+  omega <- 2 * pi / param[['period_T']]
+  alpha <- sqrt ( v_t^4 + (4 * omega * param_eq[['kappa_e']])^2 )
 
-  a = 1/(2*param_eq['kappa_e']) * (sqrt((alpha + v_t^2)/2) - v_t)
-  b = 1/(2*param_eq['kappa_e']) * sqrt((alpha - v_t^2)/2)
+  a = 1/(2*param_eq[['kappa_e']]) * (sqrt((alpha + v_t^2)/2) - v_t)
+  b = 1/(2*param_eq[['kappa_e']]) * sqrt((alpha - v_t^2)/2)
 
   res <- data.frame(t=numeric(0),
                     z=numeric(0),
@@ -39,14 +39,19 @@ calc_analyticTs_timeDepth <- function(param,t,z){
     res <- rbind(res,
                  data.frame(t=t,
                             z=z[i],
-                            temperature = param['T_mu'] +
-                              param['A'] * exp(a*z[i]) * cos(omega * t + b * z[i])))
+                            temperature = param[['T_mu']] +
+                              param[['A']] * exp(a*z[i]) * cos(omega * t + b * z[i])))
   }
+
+  # add measurement error
+  res$temperature <-
+    res$temperature + rnorm(n = nrow(res),mean = 0,sd = param[['sd_err']])
 
   return(res)
 
 }
 
+#'
 #' Applies the analytical formula to calculate temperature time series at one depth
 #'
 #' @param param the vector of parameters
@@ -64,7 +69,7 @@ calc_analyticTs <- function(param,z,nbDays=3){
   df_t <- data.frame(
     t_time=seq.POSIXt(from = ISOdate(year = 2000,month = 01,day = 01, hour = 0),
                       to = ISOdate(year = 2000,month = 01,day = 01+nbDays),
-                      by = param['sampling_period']))
+                      by = param[['sampling_period']]))
 
   # calculate time vector in seconds
   df_t$t_seconds <-
@@ -76,8 +81,8 @@ calc_analyticTs <- function(param,z,nbDays=3){
   # call calculateSynthetic_timeDepth to calculate result
   res <-
     calc_analyticTs_timeDepth(param = param,
-                                 t = df_t$t_seconds,
-                                 z = z)
+                              t = df_t$t_seconds,
+                              z = z)
 
   # join POSIXct vector to res dataframe
   res <- dplyr::left_join(x = res,
