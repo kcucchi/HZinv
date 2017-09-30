@@ -2,7 +2,7 @@
 % Please edit documentation in R/utils_params.R
 \name{calc_eq}
 \alias{calc_eq}
-\title{Calculate equivalent reduced parameters from vector of parameters}
+\title{Calculate reduced parameters from physical parameters}
 \usage{
 calc_eq(param)
 }
@@ -10,9 +10,9 @@ calc_eq(param)
 \item{param}{the vector of parameters}
 }
 \value{
-the equivalent reduced parameters
+the same vector of parameters param with updated rho_m_c_m field
 }
 \description{
-Calculate equivalent reduced parameters from vector of parameters
+Calculate reduced parameters from physical parameters
 }
 

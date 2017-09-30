@@ -10,7 +10,7 @@ calc_lambda_m(param)
 \item{param}{the vector of parameters}
 }
 \value{
-the equivelent thermal conductivity
+the same vector of parameters param with updated lambda_m field
 }
 \description{
 Calculate equivalent thermal conductivity from vector of parameters according to the wood formula
