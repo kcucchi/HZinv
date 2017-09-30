@@ -3,37 +3,179 @@
 #' Calculate equivalent thermal conductivity from vector of parameters according to the wood formula
 #'
 #' @param param the vector of parameters
-#' @return the equivelent thermal conductivity
+#' @return the same vector of parameters param with updated lambda_m field
 #' @export
 calc_lambda_m <- function(param){
 
-  res <- param[['n']] * sqrt(param[['lambda_w']]) +
-    (1 - param[['n']]) * sqrt(param[['lambda_s']])^2
+  in_parenthesis <-
+    param[['n']] * sqrt(param[['lambda_w']]) +
+    (1 - param[['n']]) * sqrt(param[['lambda_s']])
 
-  return (as.numeric(res))
+  param['lambda_m'] <- in_parenthesis^2
+
+  return(param)
 
 }
 
-#' Calculate equivalent reduced parameters from vector of parameters
+#' Calculate rho_m * c_m from vector of parameters
 #'
 #' @param param the vector of parameters
-#' @return the equivalent reduced parameters
+#' @return the same vector of parameters param with updated lambda_m field
 #' @export
-calc_eq <- function(param){
+calc_rho_m_c_m <- function(param){
 
-  lambda_m <- calc_lambda_m(param)
-
-  rho_m_c_m <-
+  param['rho_m_c_m'] <-
     param[['n']] * param[['rho_w']] * param[['c_w']] +
     (1 - param[['n']]) * param[['rho_s']] * param[['c_s']]
 
-  kappa_e <- lambda_m / rho_m_c_m
+  return(param)
 
-  alpha_e <- param[['rho_w']] * param[['c_w']] / rho_m_c_m *
+}
+
+#' Calculate reduced parameters from physical parameters
+#'
+#' @param param the vector of parameters
+#' @return the same vector of parameters param with updated rho_m_c_m field
+#' @export
+calc_eq <- function(param){
+
+  # complete kappa_e field
+  param['kappa_e'] <- param[['lambda_m']] / param[['rho_m_c_m']]
+
+  # complete alpha_e field
+  param[['alpha_e']] <-
+    param[['rho_w']] * param[['c_w']] / param[['rho_m_c_m']] *
     param[['permeability']] * param[['rho_w']] * param[['g']] / param[['mu_w']]
 
-  return(c(kappa_e = kappa_e,
-           alpha_e = alpha_e))
+  return(param)
+
+}
+
+#' Updates the definition of lambda_m, rho_m_c_m and reduced parameters
+#' @param param the vector of parameters
+#' @return param the updated vector of parameters
+#' @export
+update_all_eq <- function(param){
+
+  # update definition of lambda_m
+  param <- calc_lambda_m(param = param)
+
+  # update definition of rho_m_c_m
+  param <- calc_rho_m_c_m(param = param)
+
+  # update definition of equivalent parameters
+  param <- calc_eq(param = param)
+
+  # return result
+  return(param)
+}
+
+#'
+#' Inverse operation: calculate lambda_s from vector of parameters
+#' @param param the vector of parameters
+#' @return param with updated lambda_s field
+#' @export
+calc_inv_lambda_s <- function(param){
+
+  # update rho_m_c_m value in case
+  param <- calc_rho_m_c_m(param = param)
+
+  # calculate numerator of fraction
+  num <-
+    sqrt(param[['kappa_e']] * param[['rho_m_c_m']]) -
+    param[['n']] * sqrt(param[["lambda_w"]])
+
+  frac <- num /  (1 - param[['n']])
+
+  param[['lambda_s']] <- frac^2
+
+  return(param)
+
+}
+
+#'
+#' Inverse operation: calculate permeability from vector of parameters
+#' @param param the vector of parameters
+#' @return param with updated permeability field
+#' @export
+calc_inv_permeability <- function(param){
+
+  # update rho_m_c_m value in case
+  param <- calc_rho_m_c_m(param = param)
+
+  # calculate first ratio
+  ratio1 <-
+    param[['rho_w']] * param[['c_w']] / param[['rho_m_c_m']]
+
+  ratio2 <-
+    param[['rho_w']] * param[['g']] / param[['mu_w']]
+
+  param[['permeability']] <- param[['alpha_e']] / ratio1 / ratio2
+
+  return(param)
+
+}
+
+#'
+#' Check consistency of physical and reduced parameters in param
+#'
+#'@param param the vector of parameters
+#'@return boolean indicating whether
+#'the definition of equivalent parameters is consistent
+#'@export
+check_consistency <- function(param){
+
+  # these are the fields that we want to check
+  str_check <- c('lambda_m','rho_m_c_m','kappa_e','alpha_e')
+
+  # calculate vector with updated parameters
+  param_updated <- update_all_eq(param = param)
+
+  # check that equivalent fields are equal for both vectors
+  isEqual <- logical(length(str_check)); names(isEqual) <- str_check
+
+  # check all fields
+  # allow tolerance in error of 10^-1
+  for(i in 1:length(isEqual)){
+    rel_error_i <-
+      abs((param[[str_check[i]]] - param_updated[[str_check[i]]]) /
+            param[[str_check[i]]] )
+    isEqual[i] <- (rel_error_i <= 10^-3)
+
+  }
+
+  if(all(isEqual)){
+    return(T)
+  }else{
+    print(paste0('Check the following fields: ',str_check[which(!isEqual)]))
+    return(F)
+  }
+
+}
+
+#'
+#'Inverse operation: Update both lambda_s and permeability from param
+#'@param the vector of parameters
+#'@return the vector of parameters with updated lambda_s and permeability values
+#'@export
+calc_inv <- function(param){
+
+  # update value for lambda_s
+  param <- calc_inv_lambda_s(param = param)
+
+  # update the value of lambda_m
+  # because lambda_s changed
+  param <- calc_lambda_m(param = param)
+
+  # update value for permeability
+  param <- calc_inv_permeability(param = param)
+
+  # check consistency
+  isConsistent <- check_consistency(param)
+
+  # if(!isConsistent){stop("There is an error in the calculations somewhere... oops :'( ")}
+
+  return(param)
 
 }
 
@@ -71,7 +213,7 @@ calc_range_eq <- function(param){
     # replace values in param vector
     param_i <- replace(x = param,list = names(comb_i),values = comb_i)
     # calculate reduced parameters
-    param_eq <- calc_eq(param = param_i)
+    param_eq <- update_all_eq(param = param_i)
     # fill in in corresponding fields in df_all_comb
     df_all_comb$kappa_e[i] <- param_eq[['kappa_e']]
     df_all_comb$alpha_e[i] <- param_eq[['alpha_e']]
