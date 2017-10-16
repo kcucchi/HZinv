@@ -179,6 +179,51 @@ calc_inv <- function(param){
 
 }
 
+#' Calculate combinations of physical parameters from ranges
+#'
+#'@param param the vector of parameters
+#'@param nb_lambda_s the number of lambda_s values
+#'@param nb_permeability the number of permeability values
+#'@param nb_rho_s the number of rho_s values
+#'@param nb_c_s the number of c_s values
+#'@param nb_n the number of n values
+#'@return a dataframe of combinations of parameters
+#'@export
+calc_comb_phy <- function(param,
+                          nb_lambda_s=10, nb_permeability=10,
+                          nb_rho_s=10, nb_c_s = 10, nb_n = 10){
+
+  res <-
+    data.frame(expand.grid(
+      lambda_s =
+        seq(from = param[['lambda_s_min']],
+            to = param[['lambda_s_max']],
+            length.out = nb_lambda_s),
+      rho_s =
+        seq(from = param[['rho_s_min']],
+            to = param[['rho_s_max']],
+            length.out = nb_rho_s),
+      c_s =
+        seq(from = param[['c_s_min']],
+            to = param[['c_s_max']],
+            length.out = nb_c_s),
+      n =
+        seq(from = param[['n_min']],
+            to = param[['n_max']],
+            length.out = nb_n),
+      permeability =
+        10^seq(from = param[['permeability_log10_min']],
+               to = param[['permeability_log10_max']],
+               length.out = nb_permeability)
+    ))
+
+  # add idx for later in case
+  res$idx <- paste0('phy_',1:nrow(res))
+
+  return(res)
+
+}
+
 #' Calculate range of reduced parameters from vector of parameters
 #'
 #' @param param the vector of parameters
@@ -227,6 +272,24 @@ calc_range_eq <- function(param){
 
 }
 
+#' Calculate flux from vector of parameters
+#'
+#' @param param the vector of parameters
+#' @return the flow value (in m/s)
+#' @export
+calc_q <- function(param){
+
+  # term in front of fraction
+  const <- param[['permeability']] * param[['rho_w']] * param[['g']] / param[['mu_w']]
+
+  # hydraulic head gradient
+  frac_dH_dz <- param[['dH']] / param[['z_bottom']]
+
+  q <- - const * frac_dH_dz
+
+  return( q )
+}
+
 
 #' Calculate Peclet number from vector of parameters
 #'
@@ -235,9 +298,9 @@ calc_range_eq <- function(param){
 #' @export
 calc_Peclet <- function(param){
 
-  param_eq <- calc_eq(param)
+  param <- calc_eq(param)
 
-  return( calc_Peclet_eq(param_eq = param_eq,param = param) )
+  return( calc_Peclet_eq(param = param) )
 }
 
 
@@ -246,10 +309,45 @@ calc_Peclet <- function(param){
 #' @param param the vector of parameters
 #' @return the Peclet number
 #' @export
-calc_Peclet_eq <- function(param_eq,param){
-  res <- abs ( param_eq['alpha_e'] / param_eq['kappa_e'] * param['dH'])
+calc_Peclet_eq <- function(param){
+  res <- abs ( param[['alpha_e']] / param[['kappa_e']] * param[['dH']])
   return( as.numeric(res) )
 }
+
+#' Add equivalent parameters to dataframe of physical parameters
+#'
+#' @param param the vector of parameters
+#' @param df_phys the dataframe containing physical parameter values
+#' @return the dataframe of physical values with fields alpha_e and kappa_e
+#' @export
+calc_eq_fromPhyDf <- function(param,df_phys){
+
+  # initialize fields
+  df_phys$alpha_e <- rep(0,nrow(df_phys))
+  df_phys$kappa_e <- rep(0,nrow(df_phys))
+
+  # loop over rows
+  # add values of reduced parameters
+  for(i in 1:nrow(df_phys)){
+
+    cat(paste0('\n',i,' / ',nrow(df_phys)))
+
+    # create vector of parameters with replaced physical values
+    param_i <- replace(x = param,
+                       list = names_phy,
+                       values = df_phys[i,names_phy])
+
+    # calculate reduced parameters
+    param_i <- HZinv::update_all_eq(param = param_i)
+
+    # fill values in physical parameters dataset
+    df_phys[i,names_red] <- unlist(param_i[names_red])
+  }
+
+  return(df_phys)
+
+}
+
 
 
 #' Calculate table of correspondance between z and z_idx
@@ -269,7 +367,7 @@ get_level_z_fromParam <- function(param){
   factor_z_idx <- factor(get_z_idx,levels = level_z_idx)
 
   # result is correspondance between
-  res <- data.frame(z = param[get_z_idx],
+  res <- data.frame(z = as.numeric(param[get_z_idx]),
                     z_idx = factor_z_idx)
 
   return(res)
