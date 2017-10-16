@@ -82,6 +82,51 @@ pdf_marginalize <- function(df_pdf_mv, colName_var, colName_pdf,normalize = T){
 
 }
 
+#' Calculates cdf from pdf
+#'
+#' @param df_pdf the dataframe containing the univariate pdf
+#' @return a dataframe containing x and cdf values
+#' @export
+pdf2cdf <- function(df_pdf){
 
+  # define pdf at middle of x's
+  df_pdf_centered <-
+    df_pdf[1:(nrow(df_pdf)-1),] + df_pdf[2:nrow(df_pdf),]
 
+  # calculate cumulative sum
+  df_pdf_centered$cdf_x <- cumsum(df_pdf_centered$p_x)
+  # normalize so that last value is 1
+  df_pdf_centered$cdf_x <-
+    df_pdf_centered$cdf_x / df_pdf_centered$cdf_x[nrow(df_pdf_centered)]
 
+  # map to vector of original x's
+  res <- data.frame(x=df_pdf$x,
+                    cdf_x=c(0,df_pdf_centered$cdf_x))
+
+  return(res)
+
+}
+
+#' Calculates posterior interval estimate from pdf
+#'
+#' @param df_pdf the dataframe containing the univariate pdf
+#' @param alpha a number between 0 and 0.5
+#' @return a vector containing 2 numbers corresponding to
+#' @export
+pdf_postInterval <- function(df_pdf,alpha=0.05){
+
+  # calculate cdf corresponding to df_pdf
+  df_cdf <- HZinv::pdf2cdf(df_pdf)
+
+  # plot(df_cdf)
+
+  # these are the probabilities
+  # corresponding to the quantiles to get
+  probs_alpha <- c(alpha/2,1-alpha/2)
+
+  # get corresponding values from cdf
+  res <- approx(x = df_cdf$cdf_x,y = df_cdf$x,xout = probs_alpha)$y
+
+  return(res)
+
+}
