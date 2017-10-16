@@ -13,6 +13,11 @@ col_z <- c(z_top = colsSet[1],
            z_3 = colsSet[4],
            z_bottom = colsSet[5])
 
-# save into internal datafile
+
+
+#'
+#' # Save into internal datafile #
+#'
+
 devtools::use_data(col_z, internal = TRUE,overwrite = T)
 
