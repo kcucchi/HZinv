@@ -68,7 +68,7 @@ calc_analyticTs <- function(param,z,nbDays=3){
   # UTC does not have daylight saving times, that's what we want
   df_t <- data.frame(
     t_time=seq.POSIXt(from = ISOdate(year = 2000,month = 01,day = 01, hour = 0),
-                      to = ISOdate(year = 2000,month = 01,day = 01+nbDays),
+                      to = ISOdate(year = 2000,month = 01,day = 01+nbDays, hour = 0),
                       by = param[['sampling_period']]))
 
   # calculate time vector in seconds
@@ -108,6 +108,73 @@ calc_analyticTs <- function(param,z,nbDays=3){
                           by = "z")
 
   return(res[,c('t','t_time','z','z_idx','temperature')])
+
+}
+
+#'
+#' Applies the analytical formula to calculate temperature time series at one depth
+#'
+#' @param param the vector of parameters
+#' @param df_red the dataframe containing combinations of
+#' reduced parameters alpha_e and kappa_e for which to calculate the analytical solution
+#' @return a dataframe containing temperature timeseries
+#' corresponding to reduced parameters
+#' @export
+sim_analytic_fromRed <- function(param, df_red){
+
+  for(i in 1:nrow(df_red)){
+
+    cat(paste0('\n',i,'/',nrow(df_red)))
+
+    # select reduced parameters and format in named vector
+    param_eq_i <- as.numeric(df_red[i,c('alpha_e','kappa_e')])
+    names(param_eq_i) <- c('alpha_e','kappa_e')
+
+    # define parameter vector with reduced values
+    # the replace function is really convenient for this
+    param_i <- replace(x = param,
+                       list = names(param_eq_i),
+                       values = param_eq_i)
+
+    # first define set of physical parameters from reduced parameters
+    # apply inverse function
+    # to update value of permeability and lambda_s
+    param_i <- HZinv::calc_inv(param = param_i)
+
+    # check consistency here
+    # check_consistency(param_i)
+
+    # also, set measurement error to zero
+    param_i['sd_err'] <- 0
+
+    # call analytical function
+    # on the equivalent set of physical parameters
+    df_sim_i <-
+      HZinv::calc_analyticTs(
+        param = param_i,
+        z = as.numeric(param[grep(pattern = '^z',x = names(param))]))
+
+    # HZinv::plot_hz1d_t(param = param_i,df_hz1d_t = df_sim_i)
+
+    # finally, join to dataframe containing simulation results
+    # but first, rename column containing temperature measurements
+    names(df_sim_i)[which(names(df_sim_i)=="temperature")] <- paste0('sim_',i)
+
+    if(i==1){ # if i is 1, initialize the dataframe
+      df_sim <- df_sim_i
+    }else{
+      # otherwise join the dataframe
+      df_sim <- dplyr::left_join(x = df_sim,
+                                 y = df_sim_i[,c('t','z',paste0('sim_',i))],
+                                 by = c('t','z'))
+    }
+
+    # remove parameters internal to the loop
+    rm(df_sim_i);rm(param_i);rm(param_eq_i)
+
+  }
+
+  return(df_sim)
 
 }
 
