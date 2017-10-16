@@ -18,9 +18,9 @@ plot_hz1d_t <- function(param,df_hz1d_t){
 
   # final plot
   g_res <-
-    ggplot(data = df_hz1d_t,
-         mapping = aes(x=t_time,y=temperature,color=z_idx)) +
-    geom_line() +
+    ggplot() +
+    geom_line(data = df_hz1d_t,
+              mapping = aes(x=t_time,y=temperature,color=z_idx)) +
     scale_color_manual(
       values=col_z, # internal value for col_z defined in data-raw/internal_colors.R
       labels = vect_labels) +
