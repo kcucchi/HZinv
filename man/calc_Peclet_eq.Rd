@@ -4,7 +4,7 @@
 \alias{calc_Peclet_eq}
 \title{Calculate Peclet number from vector of equivalent parameters}
 \usage{
-calc_Peclet_eq(param_eq, param)
+calc_Peclet_eq(param)
 }
 \arguments{
 \item{param}{the vector of parameters}
