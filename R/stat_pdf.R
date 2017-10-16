@@ -46,3 +46,42 @@ pdf_define_unif <- function(x_range,n=50){
   return(res)
 
 }
+
+
+#' Marginalizes a multivariate pdf
+#'
+#' @param df_pdf_mv the dataframe containing the multivariate pdf, with variable
+#'   values and pdf values
+#' @param colName_var the variable for which to calculate the marginalized pdf
+#' @param colName_pdf the column containing the actual pdf value
+#' @param normalize boolean indicating whether to normalize the marginal pdf
+#' @return a dataframe correponding to the marginalized pdf
+#' @export
+pdf_marginalize <- function(df_pdf_mv, colName_var, colName_pdf,normalize = T){
+
+  # underscore at the end of group_by and summarize
+  # for standard evaluation versions of dplyr functions
+
+  # need interp from package lazyeval for summarize function
+
+  res <-
+    df_pdf_mv %>%
+    group_by_(colName_var) %>%
+    summarise_(p_x=lazyeval::interp(~sum(var,na.rm=T),
+                                    var=as.name(colName_pdf)))
+
+  # rename column with name colName_var to x
+  names(res)[which(names(res) == colName_var)] <- 'x'
+
+  if(normalize){
+    # normalize obtained pdf
+    res <- pdf_normalize(res)
+  }
+
+  return(res)
+
+}
+
+
+
+
