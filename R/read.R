@@ -2,9 +2,10 @@
 #' Imports vector of parameter from csv file
 #'
 #' @param csv_file path to the csv file
+#' @param check boolean indicating whether to check consistency of parameters
 #' @return the vector of parameters
 #' @export
-csv2param <- function(csv_file){
+csv2param <- function(csv_file,check=T){
 
   #
   #  read parameters from file
@@ -30,7 +31,7 @@ csv2param <- function(csv_file){
   param <- HZinv::update_all_eq(param = param)
 
   # check consistency
-  HZinv::check_consistency(param)
+  if(check) {HZinv::check_consistency(param)}
 
   return(param)
 
