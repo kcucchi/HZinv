@@ -1,6 +1,7 @@
 
 
-#' Calculate equivalent thermal conductivity from vector of parameters according to the wood formula
+#' Calculate equivalent thermal conductivity from vector of parameters according
+#' to the wood formula
 #'
 #' @param param the vector of parameters
 #' @return the same vector of parameters param with updated lambda_m field
@@ -176,51 +177,6 @@ calc_inv <- function(param){
   # if(!isConsistent){stop("There is an error in the calculations somewhere... oops :'( ")}
 
   return(param)
-
-}
-
-#' Calculate combinations of physical parameters from ranges
-#'
-#'@param param the vector of parameters
-#'@param nb_lambda_s the number of lambda_s values
-#'@param nb_permeability the number of permeability values
-#'@param nb_rho_s the number of rho_s values
-#'@param nb_c_s the number of c_s values
-#'@param nb_n the number of n values
-#'@return a dataframe of combinations of parameters
-#'@export
-calc_comb_phy <- function(param,
-                          nb_lambda_s=10, nb_permeability=10,
-                          nb_rho_s=10, nb_c_s = 10, nb_n = 10){
-
-  res <-
-    data.frame(expand.grid(
-      lambda_s =
-        seq(from = param[['lambda_s_min']],
-            to = param[['lambda_s_max']],
-            length.out = nb_lambda_s),
-      rho_s =
-        seq(from = param[['rho_s_min']],
-            to = param[['rho_s_max']],
-            length.out = nb_rho_s),
-      c_s =
-        seq(from = param[['c_s_min']],
-            to = param[['c_s_max']],
-            length.out = nb_c_s),
-      n =
-        seq(from = param[['n_min']],
-            to = param[['n_max']],
-            length.out = nb_n),
-      permeability =
-        10^seq(from = param[['permeability_log10_min']],
-               to = param[['permeability_log10_max']],
-               length.out = nb_permeability)
-    ))
-
-  # add idx for later in case
-  res$idx <- paste0('phy_',1:nrow(res))
-
-  return(res)
 
 }
 
