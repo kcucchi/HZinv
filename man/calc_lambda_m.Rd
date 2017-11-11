@@ -2,7 +2,8 @@
 % Please edit documentation in R/utils_params.R
 \name{calc_lambda_m}
 \alias{calc_lambda_m}
-\title{Calculate equivalent thermal conductivity from vector of parameters according to the wood formula}
+\title{Calculate equivalent thermal conductivity from vector of parameters according
+to the wood formula}
 \usage{
 calc_lambda_m(param)
 }
@@ -13,6 +14,7 @@ calc_lambda_m(param)
 the same vector of parameters param with updated lambda_m field
 }
 \description{
-Calculate equivalent thermal conductivity from vector of parameters according to the wood formula
+Calculate equivalent thermal conductivity from vector of parameters according
+to the wood formula
 }
 

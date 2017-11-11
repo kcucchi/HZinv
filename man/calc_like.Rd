@@ -4,7 +4,7 @@
 \alias{calc_like}
 \title{Calculates the likelihood}
 \usage{
-calc_like(df_eq_comb, df_all, param)
+calc_like(df_eq_comb, df_all, param, date_min = NULL, center = F)
 }
 \arguments{
 \item{df_eq_comb}{the dataframe containing combinations of
@@ -19,6 +19,12 @@ check that the names of columns in df_all
 are the same than contents of the sim_idx field.}
 
 \item{param}{the vector parameters}
+
+\item{date_min}{date specifying start of rmse calculation, before this date
+values will be discarded (given as POSIXct object)}
+
+\item{center}{boolean indicating whether to center timeseries before
+calculating the rmse}
 }
 \value{
 the dataframe df_eq_comb with corresponding likelihood
