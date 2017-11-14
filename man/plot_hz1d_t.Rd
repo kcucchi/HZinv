@@ -10,12 +10,9 @@ plot_hz1d_t(param, df_hz1d_t)
 \item{param}{the vector of parameters}
 
 \item{df_hz1d_t}{the dataframe of measurements}
-
-\item{z}{(in m) a vector of depths at which to calculate the temperature
-Depths need to be between 0 and maximum depth.}
 }
 \value{
-temperature at depth z and time t for parameters param
+a ggplot object
 }
 \description{
 Plots temperature measurement timeseries
